@@ -3,12 +3,12 @@
     {
       "id": "user_1",
       "name": "Enoch",
-      "balance": 500
+      "balance": 9500
     },
     {
       "id": "user_2",
       "name": "Tunde",
-      "balance": 14500
+      "balance": 15500
     }
   ]
 }

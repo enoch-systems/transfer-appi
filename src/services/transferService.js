@@ -1,7 +1,8 @@
 const userRepository = require('../repositories/userRepository')
 const transferLogger = require('../jobs/transferLogger')
+const smsService = require('../integrations/smsService')
 
-function execute({ senderId, receiverId, amount }) {
+function execute({ senderId, receiverId, amount, senderPhone, receiverPhone }) {
   // fetch both users
   const sender = userRepository.findById(senderId)
   const receiver = userRepository.findById(receiverId)
@@ -22,8 +23,23 @@ function execute({ senderId, receiverId, amount }) {
   // credit receiver
   userRepository.updateBalance(receiverId, receiver.balance + amount)
 
-  // hand off to background job — don't wait for it
+  // background job — log transfer async
   transferLogger.logTransfer({ sender: sender.name, receiver: receiver.name, amount })
+
+  // integration — send SMS alerts
+  if (senderPhone) {
+    smsService.sendSMS({
+      to: senderPhone,
+      message: `Dear ${sender.name}, your transfer of ₦${amount} to ${receiver.name} was successful.`
+    })
+  }
+
+  if (receiverPhone) {
+    smsService.sendSMS({
+      to: receiverPhone,
+      message: `Dear ${receiver.name}, you have received ₦${amount} from ${sender.name}.`
+    })
+  }
 
   return {
     message: 'Transfer successful',
