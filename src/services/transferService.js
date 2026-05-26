@@ -1,4 +1,5 @@
 const userRepository = require('../repositories/userRepository')
+const transferLogger = require('../jobs/transferLogger')
 
 function execute({ senderId, receiverId, amount }) {
   // fetch both users
@@ -20,6 +21,9 @@ function execute({ senderId, receiverId, amount }) {
 
   // credit receiver
   userRepository.updateBalance(receiverId, receiver.balance + amount)
+
+  // hand off to background job — don't wait for it
+  transferLogger.logTransfer({ sender: sender.name, receiver: receiver.name, amount })
 
   return {
     message: 'Transfer successful',
